@@ -13,11 +13,13 @@ desc='Generate the consensus of an alignment.'
 parser = optparse.OptionParser(description=desc, version='%prog version 0.1 - 31-03-2015 - Author: FCicconardi')
 
 parser.add_option('-i', '--alignment', dest='aln', help='Input alignment in FASTA. Mandatory opt.', action='store', metavar='FILE')
+parser.add_option('-l', '--locus', dest='locus', help='Locus. Mandatory opt.', action='store', metavar='<ARG>')
 parser.add_option('-t', '--consensus-threshold', dest='thld', help='Set consensus threshold value. The higher the more is sensitive [0-1]. Default <0.6>.', action='store', metavar='<ARG>', type='float', default=0.4)
+parser.add_option('-o', '--out', dest='out', help='Name of output fasta file. Mandatory opt.', action='store', metavar='FILE')
 
 (opts, args) = parser.parse_args()
 
-mandatories = ['aln']
+mandatories = ['aln','out']
 for m in mandatories:
         if not opts.__dict__[m]:
                 print "\nWARNING!  output file is not specified\n"
@@ -125,20 +127,12 @@ for i in range(0,alignment.get_alignment_length()):
 			consensus+='B'
 
 
-tmp=opts.aln.split('.alned')
-locus=tmp[0]
 
-#filename=locus+'.consensus.fasta'
 
-#out_fasta=open(filename, 'w')
+out_fasta=open(opts.out, 'w')
 
-tmp=opts.aln.split('/')
-
-#print >> out_fasta, '>'+opts.aln.replace('.fasta', '')+'_consensus threshold '+str(opts.thld)
-#print >> out_fasta, '>'+tmp[-1].replace('.fasta', '')+'_consensus threshold '+str(opts.thld)
-#print >> out_fasta, consensus
-print '>'+tmp[-1].replace('.fasta', '')+'_consensus threshold '+str(opts.thld)
-print consensus
+print >> out_fasta, '>'+opts.locus+'_consensus threshold '+str(opts.thld)
+print >> out_fasta, consensus
 
 
 #print opts.thld

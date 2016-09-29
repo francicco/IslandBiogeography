@@ -1,6 +1,6 @@
 #!/bin/bash
 
-WD=/scratch/c770/c7701100/Collembola_project/MITOS_server
+WD=/scratch/c770/c7701100/Collembola_project/MITOS_server/tmp
 
 allgeneFas=$WD/mtDNA.All.genes.fasta
 ref_genes=$WD/RefCollMtDNA.formatted.fasta
@@ -20,7 +20,7 @@ do
 	then
 
 		echo -e "Generate consensus"
-		AmbiguityConsensus.py -i $WD/mtDNA.All.$gene.alned.NT.fasta > $WD/mtDNA.All.$gene.consensus.fasta
+		AmbiguityConsensus.py -l $gene -i $WD/mtDNA.All.$gene.alned.NT.fasta -o $WD/mtDNA.All.$gene.consensus.fasta
 		
 		echo -e "Remove gaps from consensus"
 		GapAlnRemover.py -c $WD/mtDNA.All.$gene.consensus.fasta -i $WD/mtDNA.All.$gene.alned.NT.fasta -t coding -o $WD/mtDNA.All.$gene.alned.NT.ungapped.fasta
@@ -57,7 +57,6 @@ do
         		     -seq $ALNMENT.fasta
 	
 			echo -e "\n`date` Check and exclude short sequences from the alignment." 
-			cat $ALNMENT.alned.fasta
 			echo -e "gapCount.py $ALNMENT.alned.fasta $GAP_PERCENTAGE_CODING tmp | cut -d ' ' -f 1 | sort | cut -f 1| sed 's/_H_/; /g' | cut -d ' ' -f 1 > $WD/mtDNA.All.$gene.alned.$i.ids"
 			gapCount.py $ALNMENT.alned.fasta $GAP_PERCENTAGE_CODING tmp | cut -d ' ' -f 1 | sort | cut -f 1| sed 's/_H_/; /g' | cut -d ' ' -f 1 > $WD/mtDNA.All.$gene.alned.$i.ids 
 			
@@ -73,7 +72,7 @@ do
 					mv $ALNMENT.alned.fasta $WD/mtDNA.All.$gene.alned.NT.fasta
 					mv $WD/mtDNA.All.$gene.$i.Iteration_macse_AA.fasta $WD/mtDNA.All.$gene.alned.AA.fasta
 					echo -e "Generate consensus"
-					AmbiguityConsensus.py -i $WD/mtDNA.All.$gene.alned.NT.fasta > $WD/mtDNA.All.$gene.consensus.fasta
+					AmbiguityConsensus.py -l $gene -i $WD/mtDNA.All.$gene.alned.NT.fasta -o $WD/mtDNA.All.$gene.consensus.fasta
 					echo -e "Remove gaps from consensus"
 					GapAlnRemover.py -c $WD/mtDNA.All.$gene.consensus.fasta -i $WD/mtDNA.All.$gene.alned.NT.fasta -t coding -o $WD/mtDNA.All.$gene.alned.NT.ungapped.fasta
 					#rm $WD/*.ids $WD/*.Iteration.* $WD/*.alned.fasta $WD/*_macse_AA.fasta $WD/mtDNA.All.$gene.fasta
@@ -103,7 +102,7 @@ do
         then
 
                 echo -e "Generate consensus"
-                AmbiguityConsensus.py -i $WD/mtDNA.All.$gene.alned.NT.fasta > $WD/mtDNA.All.$gene.consensus.fasta
+                AmbiguityConsensus.py -l $gene -i $WD/mtDNA.All.$gene.alned.NT.fasta -o $WD/mtDNA.All.$gene.consensus.fasta
 
 		echo -e "Remove gaps from consensus"
 		GapAlnRemover.py -c $WD/mtDNA.All.$gene.consensus.fasta -i $WD/mtDNA.All.$gene.alned.NT.fasta -t noncoding -o $WD/mtDNA.All.$gene.alned.NT.ungapped.fasta
@@ -141,15 +140,15 @@ do
                                         -gapdist=10 -iteration=TREE \
                                         -numiter=1000 -clustering=UPGMA
 	
-			grep --no-group-separator -A1 -w $gene $allgeneFas > $WD/mtDNA.All.$gene.fasta
-			grep --no-group-separator -A1 -w $gene $ref_genes >> $WD/mtDNA.All.$gene.fasta
+			#grep --no-group-separator -A1 -w $gene $allgeneFas > $WD/mtDNA.All.$gene.fasta
+			#grep --no-group-separator -A1 -w $gene $ref_genes >> $WD/mtDNA.All.$gene.fasta
 
 
 
 
 			echo -e "\n`date` Check and exclude short sequences from the alignment." 
-                        echo -e "gapCount.py $ALNMENT.alned.fasta $GAP_PERCENTAGE_NONCOD | cut -d ' ' -f 1 | sort | cut -f 1| sed 's/_H_/; /g' | cut -d ' ' -f 1 > $WD/mtDNA.All.$gene.alned.$i.ids"
-                        gapCount.py $ALNMENT.alned.fasta $GAP_PERCENTAGE_NONCOD | cut -d ' ' -f 1 | sort | cut -f 1| sed 's/_H_/; /g' | cut -d ' ' -f 1 > $WD/mtDNA.All.$gene.alned.$i.ids
+                        echo -e "gapCount.py $ALNMENT.alned.fasta $GAP_PERCENTAGE_NONCOD tmp | cut -d ' ' -f 1 | sort | cut -f 1| sed 's/_H_/; /g' | cut -d ' ' -f 1 > $WD/mtDNA.All.$gene.alned.$i.ids"
+                        gapCount.py $ALNMENT.alned.fasta $GAP_PERCENTAGE_NONCOD tmp | cut -d ' ' -f 1 | sort | cut -f 1| sed 's/_H_/; /g' | cut -d ' ' -f 1 > $WD/mtDNA.All.$gene.alned.$i.ids
 
                         p_iter=`bc <<< $i-1`
 
@@ -161,9 +160,8 @@ do
                                 then
                                         echo -e "Removing temporary files"
                                         sed 's/_H_/; /g' $ALNMENT.alned.fasta > $WD/mtDNA.All.$gene.alned.NT.fasta
-                                        
 					echo -e "Generate consensus"
-                                        AmbiguityConsensus.py -i $WD/mtDNA.All.$gene.alned.NT.fasta > $WD/mtDNA.All.$gene.consensus.fasta
+                                        AmbiguityConsensus.py -l $gene -i $WD/mtDNA.All.$gene.alned.NT.fasta -o $WD/mtDNA.All.$gene.consensus.fasta
 					echo -e "Remove gaps from consensus"
 					GapAlnRemover.py -c $WD/mtDNA.All.$gene.consensus.fasta -i $WD/mtDNA.All.$gene.alned.NT.fasta -t noncoding -o $WD/mtDNA.All.$gene.alned.NT.ungapped.fasta
 					rm $WD/*.ids $WD/*.Iteration.* $WD/*.alned.fasta $WD/mtDNA.All.$gene.fasta $WD/*.dnd
