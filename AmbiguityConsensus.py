@@ -128,13 +128,17 @@ for i in range(0,alignment.get_alignment_length()):
 tmp=opts.aln.split('.alned')
 locus=tmp[0]
 
-filename=locus+'.consensus.fasta'
+#filename=locus+'.consensus.fasta'
 
-out_fasta=open(filename, 'w')
+#out_fasta=open(filename, 'w')
 
-print >> out_fasta, '>'+opts.aln.replace('.fasta', '')+'_consensus threshold '+str(opts.thld)
-print >> out_fasta, consensus
+tmp=opts.aln.split('/')
 
+#print >> out_fasta, '>'+opts.aln.replace('.fasta', '')+'_consensus threshold '+str(opts.thld)
+#print >> out_fasta, '>'+tmp[-1].replace('.fasta', '')+'_consensus threshold '+str(opts.thld)
+#print >> out_fasta, consensus
+print '>'+tmp[-1].replace('.fasta', '')+'_consensus threshold '+str(opts.thld)
+print consensus
 
 
 #print opts.thld

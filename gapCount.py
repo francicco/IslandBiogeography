@@ -7,14 +7,14 @@ from Bio import SeqIO
 fasta=open(argv[1], 'r')
 gap_pec=float(argv[2])
 
-#fst_out=open(argv[3], 'w')
+fst_out=open(argv[3], 'w')
 
 for record in SeqIO.parse(fasta, 'fasta'):
-	gaps=float(record.seq.count('-'))/float(len(record.seq))
+	gaps=float(record.seq.count('-'))/float(len(record.seq))*100
+	print gaps
 	if gaps <= gap_pec:
-		#print >> fst_out, '>%s\n%s' % (record.description, str(record.seq).replace('-',''))
-		print '>%s\n%s' % (record.description, str(record.seq).replace('-',''))
+		print >> fst_out, '>%s\n%s' % (record.description, str(record.seq).replace('-',''))
 	else:
 		print record.description, gaps
 
-#fst_out.close() 
+fst_out.close() 

@@ -1,21 +1,22 @@
 #!/bin/bash
 
-WD=/scratch/c7701100/Collembola_project/MITOS_server
+WD=/scratch/c770/c7701100/Collembola_project/MITOS_server
 
 allgeneFas=$WD/mtDNA.All.genes.fasta
 ref_genes=$WD/RefCollMtDNA.formatted.fasta
+MAC_DIR=/scratch/c770/c7701100/Collembola_project/MITOS_server
 GAP_PERCENTAGE_CODING=33
 GAP_PERCENTAGE_NONCOD=75
 Codgene2sort='nad2 cox1 cox2 atp8 atp6 cox3 nad3 nad5 nad4 nad4l nad6 cob nad1'
 NCodgene2sort='rrnL rrnS'
 
-for gene in $Codgene2sort
+for gene in $Codgene2sort # Here the script process all genes one at the time
 do 
 
 	echo -e "\n#######################################################################"
 	echo -e "\n`date` Align gene $gene."
 
-	if [ -f mtDNA.All.$gene.alned.NT.fasta ]
+	if [ -f mtDNA.All.$gene.alned.NT.fasta ] # If there is this aligned fasta create it's consensus and deletes gaps otherwise it does the alignment.
 	then
 
 		echo -e "Generate consensus"
@@ -24,7 +25,8 @@ do
 		echo -e "Remove gaps from consensus"
 		GapAlnRemover.py -c $WD/mtDNA.All.$gene.consensus.fasta -i $WD/mtDNA.All.$gene.alned.NT.fasta -t coding -o $WD/mtDNA.All.$gene.alned.NT.ungapped.fasta
 	else
-		# Extract single gene from file containint all genes and create file to align.
+		ls $allgeneFas 
+		# Extract single gene from file containint all genes and create file to align. Creating the dataset to align.
 		grep --no-group-separator -A1 -w $gene $allgeneFas > $WD/mtDNA.All.$gene.fasta
 		grep --no-group-separator -A1 -w $gene $ref_genes >> $WD/mtDNA.All.$gene.fasta
 	
@@ -48,15 +50,16 @@ do
 			N_SEQ=`grep -c '^>' $ALNMENT.fasta`
 			echo -e "`date` Alignment of $N_SEQ sequences in $ALNMENT.fasta file."
 
-			java -jar macse_v1.01b.jar \
+			java -jar $WD/macse_v1.01b.jar \
         		     -prog alignSequences \
         		     -gc_def 5 \
         		     -out_NT $ALNMENT.alned.fasta \
         		     -seq $ALNMENT.fasta
 	
 			echo -e "\n`date` Check and exclude short sequences from the alignment." 
-			echo -e "gapCount.py $ALNMENT.alned.fasta $GAP_PERCENTAGE_CODING | cut -d ' ' -f 1 | sort | cut -f 1| sed 's/_H_/; /g' | cut -d ' ' -f 1 > $WD/mtDNA.All.$gene.alned.$i.ids"
-			gapCount.py $ALNMENT.alned.fasta $GAP_PERCENTAGE_CODING | cut -d ' ' -f 1 | sort | cut -f 1| sed 's/_H_/; /g' | cut -d ' ' -f 1 > $WD/mtDNA.All.$gene.alned.$i.ids 
+			cat $ALNMENT.alned.fasta
+			echo -e "gapCount.py $ALNMENT.alned.fasta $GAP_PERCENTAGE_CODING tmp | cut -d ' ' -f 1 | sort | cut -f 1| sed 's/_H_/; /g' | cut -d ' ' -f 1 > $WD/mtDNA.All.$gene.alned.$i.ids"
+			gapCount.py $ALNMENT.alned.fasta $GAP_PERCENTAGE_CODING tmp | cut -d ' ' -f 1 | sort | cut -f 1| sed 's/_H_/; /g' | cut -d ' ' -f 1 > $WD/mtDNA.All.$gene.alned.$i.ids 
 			
 			p_iter=`bc <<< $i-1`
 	
@@ -73,7 +76,7 @@ do
 					AmbiguityConsensus.py -i $WD/mtDNA.All.$gene.alned.NT.fasta > $WD/mtDNA.All.$gene.consensus.fasta
 					echo -e "Remove gaps from consensus"
 					GapAlnRemover.py -c $WD/mtDNA.All.$gene.consensus.fasta -i $WD/mtDNA.All.$gene.alned.NT.fasta -t coding -o $WD/mtDNA.All.$gene.alned.NT.ungapped.fasta
-					rm $WD/*.ids $WD/*.Iteration.* $WD/*.alned.fasta $WD/*_macse_AA.fasta $WD/mtDNA.All.$gene.fasta
+					#rm $WD/*.ids $WD/*.Iteration.* $WD/*.alned.fasta $WD/*_macse_AA.fasta $WD/mtDNA.All.$gene.fasta
 					break
 				fi
 			fi
@@ -81,8 +84,8 @@ do
 			n_long=`wc -l $WD/mtDNA.All.$gene.alned.$i.ids | cut -d ' ' -f 1`
 			n_short=`bc <<< $Aln_len-$n_long`
 			echo -e "\n`date` Remove $n_short short sequences from the alignment."
-			echo -e "fasta_id_extractor.py $WD/mtDNA.All.$gene.fasta $WD/mtDNA.All.$gene.alned.$i.ids > $WD/mtDNA.All.$gene.$iter.Iteration.fasta"
-			fasta_id_extractor.py $WD/mtDNA.All.$gene.fasta $WD/mtDNA.All.$gene.alned.$i.ids > $WD/mtDNA.All.$gene.$iter.Iteration.fasta
+			echo -e "fasta_id_extractor.py -f $WD/mtDNA.All.$gene.fasta -l $WD/mtDNA.All.$gene.alned.$i.ids -m exclude > $WD/mtDNA.All.$gene.$iter.Iteration.fasta"
+			fasta_id_extractor.py -f $WD/mtDNA.All.$gene.fasta -l $WD/mtDNA.All.$gene.alned.$i.ids -m exclude > $WD/mtDNA.All.$gene.$iter.Iteration.fasta
 		
 		done
 
@@ -171,8 +174,8 @@ do
                         n_long=`wc -l $WD/mtDNA.All.$gene.alned.$i.ids | cut -d ' ' -f 1`
                         n_short=`bc <<< $Aln_len-$n_long`
                         echo -e "\n`date` Remove $n_short short sequences from the alignment."
-                        echo -e "fasta_id_extractor.py $WD/mtDNA.All.$gene.fasta $WD/mtDNA.All.$gene.alned.$i.ids > $WD/mtDNA.All.$gene.$iter.Iteration.fasta"
-                        fasta_id_extractor.py $WD/mtDNA.All.$gene.fasta $WD/mtDNA.All.$gene.alned.$i.ids > $WD/mtDNA.All.$gene.$iter.Iteration.fasta
+                        echo -e "fasta_id_extractor.py -f $WD/mtDNA.All.$gene.fasta -l $WD/mtDNA.All.$gene.alned.$i.ids -m exclude > $WD/mtDNA.All.$gene.$iter.Iteration.fasta"
+                        fasta_id_extractor.py -f $WD/mtDNA.All.$gene.fasta -l $WD/mtDNA.All.$gene.alned.$i.ids -m exclude > $WD/mtDNA.All.$gene.$iter.Iteration.fasta
 
                 done
 
