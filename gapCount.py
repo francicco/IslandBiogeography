@@ -17,4 +17,4 @@ for record in SeqIO.parse(fasta, 'fasta'):
 	else:
 		print record.description, gaps
 
-fst_out.close() 
+#fst_out.close() 
