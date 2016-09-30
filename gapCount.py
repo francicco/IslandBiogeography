@@ -11,7 +11,6 @@ fst_out=open(argv[3], 'w')
 
 for record in SeqIO.parse(fasta, 'fasta'):
 	gaps=float(record.seq.count('-'))/float(len(record.seq))*100
-	print gaps
 	if gaps <= gap_pec:
 		print >> fst_out, '>%s\n%s' % (record.description, str(record.seq).replace('-',''))
 	else:

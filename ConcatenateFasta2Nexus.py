@@ -84,10 +84,10 @@ for file in files:
 	matrix''' % (loc_tax, nchar)
 	for id in taxaList:
                 if id in tmp_dict.keys():
-                        print >> tmp_out, id[:-1]+'\t'+tmp_dict[id][0]
-			print >> output_nexus, id[:-1]+'\t'+tmp_dict[id][0]
+                        print >> tmp_out, id+'\t'+tmp_dict[id][0]
+			print >> output_nexus, id+'\t'+tmp_dict[id][0]
 		else:
-                        print >> tmp_out, id[:-1]+'\t'+mis_len
+                        print >> tmp_out, id+'\t'+mis_len
 	print >> output_nexus, ';\nend;'
 	print >> output_nexus, '''begin sets;
 charset %s-1 = 1-%i\\3;
