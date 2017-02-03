@@ -6,13 +6,13 @@ from Bio.Align import AlignInfo
 from collections import defaultdict
 
 def ungap(seq, gaps):
-	c=0
-	ungapped=''
-	for n in seq:
-        	c+=1
-        	if c not in gaps:
-                	ungapped+=n.replace('!','-')
-	return ungapped
+    c=0
+    ungapped=''
+    for n in seq:
+            c+=1
+            if c not in gaps:
+                    ungapped+=n.replace('!','-')
+    return ungapped
 
 
 ################################# Command line options
@@ -39,36 +39,36 @@ for m in mandatories:
 ############################## Reading files and parameters
 
 for record in SeqIO.parse(open(opts.cons), 'fasta'):
-	c=0
-	cod=1
-	codon_dict=defaultdict(list)
-	consensus=record.seq
-	for pos in consensus:
-		c+=1
-		if c%3 == 1: cod+=1
-		if pos == '-':
-			codon_dict[cod].append((c))
+    c=0
+    cod=1
+    codon_dict=defaultdict(list)
+    consensus=record.seq
+    for pos in consensus:
+        c+=1
+        if c%3 == 1: cod+=1
+        if pos == '-':
+            codon_dict[cod].append((c))
 
 gaps=[]
 for cod in codon_dict.keys():
-	if opts.typ=='coding':
-		if len(codon_dict[cod]) > 0:
-			gaps.append((cod-1)*3-2)
-			gaps.append((cod-1)*3-1)
-			gaps.append((cod-1)*3)
-	elif opts.typ=='noncoding':
-		for pos in range(0,len(codon_dict[cod])):
-			gaps.append(codon_dict[cod][pos])
-	
+    if opts.typ=='coding':
+        if len(codon_dict[cod]) > 0:
+            gaps.append((cod-1)*3-2)
+            gaps.append((cod-1)*3-1)
+            gaps.append((cod-1)*3)
+    elif opts.typ=='noncoding':
+        for pos in range(0,len(codon_dict[cod])):
+            gaps.append(codon_dict[cod][pos])
+    
 alignment = AlignIO.read(open(opts.aln), 'fasta')
 print '\nAlignment length %i' % alignment.get_alignment_length()
 
 ungapped_fasta=open(opts.out, 'w')
 
 for record in alignment:
-	ungapped=ungap(record.seq, gaps)
-	print >> ungapped_fasta, '>'+record.description.replace(';','')
-	print >> ungapped_fasta, ungapped 
+    ungapped=ungap(record.seq, gaps)
+    print >> ungapped_fasta, '>'+record.description.replace(';','')
+    print >> ungapped_fasta, ungapped 
 
 ungapped_fasta.close()
 
