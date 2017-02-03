@@ -1,36 +1,56 @@
 #!/bin/bash
 
-WD=/scratch/c7701100/Collembola_project/MITOS_server
 
-MITODIR=MetaGenomes
-Cntgs_oriented=$WD/Consistet.oriented.cntgs.dat
-GeneOrder=$WD/collGeneOrder.dat
+#####################################
+#### Filter putative mtDNA contigs based on gene order.    
+#### Uses as input contigs from the previous step (2.GeneOrientation). 
+####
+#### Usage: bash 3.GeneOrder.sh Directory Prefix Output
+####        - Directory = directory with all MITOS raw data folders                               
+####        - Prefix = ID of the sample being processed
+####        - Output = Path to the output folder of your choice (must be the same as in steps 1 and 2)
+####
+#### Dependencies: MtDNA.GeneOrder.check.py (in bin folder), collGeneOrder.dat file (in bin folder).
+####
+#### The collGeneOrder.dat is a space delimited file containing the mitochondrial genes (coding and RNA)
+#### in the good order for the species/genus of interest (check in METAMIGA for example) but with the formatting as in 
+#### MITOS (for example: ND2 would be nad2 to fit the MITOS annotations). Genes on the positive strand are 
+#### followed by "+". 
+#### E.G: nad2+ cox1+ cox2+ nad1 etc... 
+####
+#### Francesco Cicconardi (2016)
+#####################################
 
-tmp=$WD/.tmp
-single=$WD/results_snglGene.contigs
-All=$WD/results_All.contigs
-Allmin1=$WD/results_All-1.contigs
+### Getting script arguments
+MITODIR=$1                
+PREFIX=$2
+OUTPUT=$3 
 
-rm $tmp
-touch $tmp
+### Defining output files to be generated
+TMP=$OUTPUT/tmp.gene.order
+SINGLE=$OUTPUT/$PREFIX.results_snglGene.contigs
+ALL=$OUTPUT/$PREFIX.results_All.contigs
+ALLMIN1=$OUTPUT/$PREFIX.results_All-1.contigs
 
+### Removing old temporary files
+rm $TMP
+touch $TMP
+
+### Changing directory
 cd $MITODIR
 
-cut -d ' ' -f 1 $Cntgs_oriented | while read scf
+### Keeping only the column with the name of the contigs from the previous step, and looping over them
+cut -d ' ' -f 1 $OUTPUT/$PREFIX.Consistet.oriented.cntgs.dat | while read contig
 do
-	cd $scf
-	export strand=`grep $scf $Cntgs_oriented | cut -d ' ' -f 2`
-	#echo $scf $strand
-	MtDNA.GeneOrder.check.py cntg_g_order.dat $GeneOrder $scf $strand >> $tmp
-	MtDNA.GeneOrder.check.py cntg_g_order.dat $GeneOrder $scf $strand | grep 'only 1 gene' >> $single
-	MtDNA.GeneOrder.check.py cntg_g_order.dat $GeneOrder $scf $strand | awk '{ if ($2 == $4) print $0}' >> $All
-	MtDNA.GeneOrder.check.py cntg_g_order.dat $GeneOrder $scf $strand | awk '{ if ($2-2 == $4) print $0}' >> $Allmin1
-	cd ..
+    cd $contig
+    export strand=`grep $contig $OUTPUT/$PREFIX.Consistet.oriented.cntgs.dat | cut -d ' ' -f 2`
+    echo $contig $strand
+    python ../../bin/MtDNA.GeneOrder.check.py cntg_g_order.dat ../../bin/collGeneOrder.dat $contig $strand >> $TMP
+    python ../../bin/MtDNA.GeneOrder.check.py cntg_g_order.dat ../../bin/collGeneOrder.dat $contig $strand | grep 'only 1 gene' >> $SINGLE
+    python ../../bin/MtDNA.GeneOrder.check.py cntg_g_order.dat ../../bin/collGeneOrder.dat $contig $strand | awk '{ if ($2 == $4) print $0}' >> $ALL
+    python ../../bin/MtDNA.GeneOrder.check.py cntg_g_order.dat ../../bin/collGeneOrder.dat $contig $strand | awk '{ if ($2-2 == $4) print $0}' >> $ALLMIN1
+    cd ..
 done
 
-cat $tmp | grep 'only 1 gene' > $single
-cat $tmp | awk '{ if ($2 == $4) print $0}' > $All
-cat $tmp | awk '{ if ($2-2 == $4) print $0}' > $Allmin1
-
-
-
+### Generating the final output 
+cat $SINGLE $ALL $ALLMIN1 > $OUTPUT/$PREFIX.All.contigs.ids
